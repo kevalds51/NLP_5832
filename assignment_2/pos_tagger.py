@@ -181,8 +181,6 @@ for row in (tag2_tag1):
 	for ele in (row):
 		sum_t2t1 += ele
 print ("Sum of P(T2/T1): ",sum_t2t1)
-		
-
 '''
 		I have the smoothed matrix for: T2/T1 and W2/T2
 		Checked the probability matrix by summing all the elements
