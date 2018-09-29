@@ -83,7 +83,7 @@ print ("\t\t-----------------------\t\t\n")
 
 
 '''
-	 -------------				BIGRAM MODEL + VITEBRI			--------------
+	 -------------				BIGRAM MODEL			--------------
 
 	Expanding P(W_n/T_n) using Bayes and considering bigrams:-
 	Need to put create a probability matrix for (T2/T1)
@@ -180,20 +180,109 @@ for xx, row in enumerate(word2_tag2):
 		# add-1 smoothing
 		word2_tag2[xx][yy] = (ele+1)/(t2_counter[tag_words[xx]]+len(uniq_words))
 
-sum_w2t2 = 0
-for row in (word2_tag2):
-	for ele in (row):
-		sum_w2t2 += ele
-print ("Sum of P(W2/T2): ",sum_w2t2)
+#	Summing the matrix values to check if probability == 1
+# sum_w2t2 = 0
+# for row in (word2_tag2):
+# 	for ele in (row):
+# 		sum_w2t2 += ele
+# print ("Sum of P(W2/T2): ",sum_w2t2)
 
-sum_t2t1 = 0
-for row in (tag2_tag1):
-	for ele in (row):
-		sum_t2t1 += ele
-print ("Sum of P(T2/T1): ",sum_t2t1)
+# sum_t2t1 = 0
+# for row in (tag2_tag1):
+# 	for ele in (row):
+# 		sum_t2t1 += ele
+# print ("Sum of P(T2/T1): ",sum_t2t1)
 
 '''
 		I have the smoothed matrix for: T2/T1 and W2/T2
 		Checked the probability matrix by summing all the elements
 		TODO: apply vitebri to assign POS 
+
+				THE VITEBRI ALGORITHM
 '''
+
+def applyViterbi(tagSentence):
+	'''
+		Globals:-
+
+			tag       	:	counter for tag occurences
+			tag_index	:	gives index of key tag
+			tag_words	:	gives tag corresponding to index
+			tag2_tag1	:	P(T_i/T_i-1)
+
+			uniq_words	:	counter for unique words
+			word_index	:	gives index of key word
+			index_words	:	gives word of key index
+			word2_tag2	:	P(W_i/T_i)
+	'''
+	s_len = len(tagSentence)
+	viterbi = np.zeros((nn-1,s_len)) 	# initialise viterbi table
+	v_l = np.zeros((nn-1,s_len))
+	backtrack = np.zeros((nn-1,s_len)) 		# initialise the best path table
+	best_path = np.zeros(s_len); 		# output
+
+	sentence = []
+	for word in tagSentence:
+		sentence.append(word)
+
+	# filling the viterbi table for 1st word
+	wi = word_index[sentence[0][1]]
+	for ii in range(nn-1):
+		t2 = tag_index[tag_words[ii]]
+		# index of 's' is fixed at len(tags)-1
+		viterbi[t2][0] = tag2_tag1[len(tags)-1][t2] * word2_tag2[t2][wi]
+
+	# filling the viterbi table for remaining words
+	for word in sentence[1:]:
+		wi = word_index[word[1]]
+		viterbiWordIndex = int(word[0])-1
+		for ii in range(nn-1):
+			t1 = tag_index[tag_words[ii]]
+			for jj in range(nn-1):
+				t2 = tag_index[tag_words[jj]]
+				viterbi[t2][viterbiWordIndex] = tag2_tag1[t1][t2] * word2_tag2[t2][wi]
+	# print (viterbi)
+
+
+	for col in range(1,len(viterbi[0])): # since we don't consider 1st column
+		for row in range(len(viterbi)):
+			temp_max_val = -1.0
+			tem_max_ind = -1.0
+			curr = viterbi[row][col]
+			for kk in range(nn-1):
+				prod = curr*viterbi[kk][col-1]
+				if prod > temp_max_val:
+					temp_max_val = prod
+					tem_max_ind = kk
+			v_l[row][col] = temp_max_val
+			backtrack[row][col] = tem_max_ind
+		for row in range(len(viterbi)):
+			viterbi[row][col] = v_l[row][col]
+	for aaa in backtrack[0]:
+		print (tag_words[aaa]," ",)
+
+			
+	# ## dont do row first! do column first!
+	# for ii, row in enumerate(viterbi):
+	# 	for jj, ele in enumerate(row):
+	# 		# 1st column says the same
+	# 		# print (ele)
+	# 		if jj == 0:
+	# 			continue
+	# 		temp_max_val = -1.0
+	# 		tem_max_ind = -1.0
+	# 		for kk in range(nn-1):
+	# 			print (ele*viterbi[kk][jj-1])
+	# 			if ele*viterbi[kk][jj-1] > temp_max_val:
+	# 				temp_max_val = ele*viterbi[kk][jj-1]
+	# 				tem_max_ind = kk
+	# 		viterbi[ii][jj] = temp_max_val
+	# 		# print (tem_max_ind)
+	# 		backtrack[ii][jj] = tem_max_ind
+	# print viterbi table
+	# print ("\n\n\n\n\n\n")
+	# print (backtrack)
+for tt in test:
+	applyViterbi(tt)
+	print (tt)
+	print ("\n\n\n\n")
