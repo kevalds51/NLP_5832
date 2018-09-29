@@ -48,7 +48,7 @@ for sentence in all_data:
 	for word in sentence:
 		tags[word[2]] += 1
 	tags['s'] += 1 # 's' is the tag to indicate start
-# print (tags)
+print (tags)
 
 ##	 -------------				BASELINE			--------------
 
@@ -105,7 +105,17 @@ tag_words = {}		# indexes are keys
 for wi, word in enumerate(tags):
 	tag_index[word] = wi
 	tag_words[wi] = word
-# 	print (tag_index)
+
+#	I want the 's' tag to have the last index
+s_index = tag_index['s']
+last_tag = tag_words[len(tags)-1]
+tag_index['s'] = len(tags)-1
+tag_index[last_tag] = s_index
+tag_words[s_index] = last_tag
+tag_words[len(tags)-1] = 's'
+
+# print (tag_words)
+# print (tag_index)
 
 '''
 	Tag transition probability
@@ -114,7 +124,7 @@ for wi, word in enumerate(tags):
 '''
 nn = len(tags)
 t2t1_bgCount = 0
-tag2_tag1 = np.zeros(shape=(nn,nn))
+tag2_tag1 = np.zeros(shape=(nn,nn-1)) # don't need 's' in columns
 t1_counter = Counter()
 for si, sentences in enumerate(training):
 	for wi, word in enumerate(sentences):
@@ -140,7 +150,7 @@ for si, sentences in enumerate(training):
 for xx, row in enumerate(tag2_tag1):
 	for yy, ele in enumerate(row):
 		# add-1 smoothing
-		tag2_tag1[xx][yy] = (ele+1)/(t1_counter[tag_words[xx]]+len(tags))
+		tag2_tag1[xx][yy] = (ele+1)/(t1_counter[tag_words[xx]]+(nn-1))
 
 '''
 	Word likelihood probability
@@ -150,7 +160,7 @@ for xx, row in enumerate(tag2_tag1):
 
 nw = len(uniq_words)
 w2t2_bgCount = 0
-word2_tag2 = np.zeros(shape=(nn,nw))
+word2_tag2 = np.zeros(shape=(nn-1,nw)) # Don't need 's' here
 t2_counter = Counter()
 for si, sentences in enumerate(training):
 	for wi, word in enumerate(sentences):
@@ -181,6 +191,7 @@ for row in (tag2_tag1):
 	for ele in (row):
 		sum_t2t1 += ele
 print ("Sum of P(T2/T1): ",sum_t2t1)
+
 '''
 		I have the smoothed matrix for: T2/T1 and W2/T2
 		Checked the probability matrix by summing all the elements
