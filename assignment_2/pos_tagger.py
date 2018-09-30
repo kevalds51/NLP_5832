@@ -60,6 +60,7 @@ for sentence in training:
 		if word[1] not in uniq_words.keys():
 			uniq_words[word[1]]=Counter()
 		uniq_words[word[1]][word[2]]+=1
+uniq_words["<unk>"]=Counter()
 
 # test dictionary will store the [predicted value, actual value] for all test words
 test_dict = {}
@@ -94,10 +95,10 @@ print ("\t\t-----------------------\t\t\n")
 # 	enumerate the unique words to maintain the bigram occurence count
 word_index = {}		# words are keys
 index_words = {}	# indexes are keys
-for wi, word in enumerate(uniq_words):
+for wi, word in enumerate(uniq_words.keys()):
 	word_index[word] = wi
 	index_words[wi] = word
-# 	print (word_index)
+# print (word_index)
 
 # 	enumerate the unique tags to maintain the bigram occurence count
 tag_index = {}		# tags are keys
@@ -210,7 +211,7 @@ def applyViterbi(tagSentence):
 			tag_words	:	gives tag corresponding to index
 			tag2_tag1	:	P(T_i/T_i-1)
 
-			uniq_words	:	counter for unique words
+			uniq_words	:	counter for unique words and its tags
 			word_index	:	gives index of key word
 			index_words	:	gives word of key index
 			word2_tag2	:	P(W_i/T_i)
@@ -229,8 +230,10 @@ def applyViterbi(tagSentence):
 	wi = word_index[sentence[0][1]]
 	for ii in range(nn-1):
 		t2 = tag_index[tag_words[ii]]
+		# print (tag_words)
+		# print (t2, ii, tag_words[ii])
 		# index of 's' is fixed at len(tags)-1
-		viterbi[t2][0] = tag2_tag1[len(tags)-1][t2] * word2_tag2[t2][wi]
+		viterbi[t2][0] = tag2_tag1[0][t2] * word2_tag2[t2][wi]
 
 	# filling the viterbi table for remaining words
 	for word in sentence[1:]:
@@ -240,49 +243,59 @@ def applyViterbi(tagSentence):
 			t1 = tag_index[tag_words[ii]]
 			for jj in range(nn-1):
 				t2 = tag_index[tag_words[jj]]
-				viterbi[t2][viterbiWordIndex] = tag2_tag1[t1][t2] * word2_tag2[t2][wi]
+				# print (jj, t2)
+				viterbi[t2][viterbiWordIndex] = tag2_tag1[t1+1][t2] * word2_tag2[t2][wi]
 	# print (viterbi)
 
-
-	for col in range(1,len(viterbi[0])): # since we don't consider 1st column
-		for row in range(len(viterbi)):
+	for col in range(1,s_len): # since we don't consider 1st column
+		for row in range(nn-1):
 			temp_max_val = -1.0
 			tem_max_ind = -1.0
 			curr = viterbi[row][col]
 			for kk in range(nn-1):
 				prod = curr*viterbi[kk][col-1]
 				if prod > temp_max_val:
+					print ("row ",row,"col ",col, "currInd ",kk, "currMax ",prod, "prevMax ",temp_max_val, "prevInd ",tem_max_ind)
 					temp_max_val = prod
 					tem_max_ind = kk
-			v_l[row][col] = temp_max_val
+			viterbi[row][col] = temp_max_val
 			backtrack[row][col] = tem_max_ind
-		for row in range(len(viterbi)):
-			viterbi[row][col] = v_l[row][col]
-	for aaa in backtrack[0]:
-		print (tag_words[aaa]," ",)
-
-			
-	# ## dont do row first! do column first!
-	# for ii, row in enumerate(viterbi):
-	# 	for jj, ele in enumerate(row):
-	# 		# 1st column says the same
-	# 		# print (ele)
-	# 		if jj == 0:
-	# 			continue
-	# 		temp_max_val = -1.0
-	# 		tem_max_ind = -1.0
-	# 		for kk in range(nn-1):
-	# 			print (ele*viterbi[kk][jj-1])
-	# 			if ele*viterbi[kk][jj-1] > temp_max_val:
-	# 				temp_max_val = ele*viterbi[kk][jj-1]
-	# 				tem_max_ind = kk
-	# 		viterbi[ii][jj] = temp_max_val
-	# 		# print (tem_max_ind)
-	# 		backtrack[ii][jj] = tem_max_ind
-	# print viterbi table
-	# print ("\n\n\n\n\n\n")
+		# for row in range(len(viterbi)):
+		# 	viterbi[row][col] = v_l[row][col]
+	# print (viterbi)
 	# print (backtrack)
-for tt in test:
-	applyViterbi(tt)
-	print (tt)
-	print ("\n\n\n\n")
+
+	prediction=[]
+	for aaa in backtrack[0]:
+		prediction.append(tag_words[aaa])
+	prediction.append(".")
+	return (prediction[1:])
+
+goodTest = []
+sampleS = 1#len(test)
+for sentence in test[0:sampleS]:
+	for wii, word in enumerate(sentence):
+		if word[1] not in uniq_words.keys():
+			sentence[wii][1] = "<unk>"
+	goodTest.append(sentence)
+
+compareMatrix = []
+for sentence in goodTest:
+	actualLabel=[]
+	for word in sentence:
+		actualLabel.append(word[2])
+	compareSen = ([applyViterbi(sentence), actualLabel])
+	# print (compareSen)
+	compareMatrix.append(compareSen)
+
+totalChecks=0
+niceChecks=0
+
+for sentence in compareMatrix:
+	for iii in range(len(sentence[0])):
+		totalChecks+=1
+		if sentence[0][iii] == sentence[1][iii]:
+			niceChecks+=1
+	# print (sentence[0])
+	# print (sentence[1])
+print (niceChecks/totalChecks)
