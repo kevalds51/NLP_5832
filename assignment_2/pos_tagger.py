@@ -201,8 +201,7 @@ for xx, row in enumerate(word2_tag2):
 
 				THE VITEBRI ALGORITHM
 '''
-
-def applyViterbi(tagSentence):
+def applyViterbi(sentence):
 	'''
 		Globals:-
 
@@ -216,69 +215,55 @@ def applyViterbi(tagSentence):
 			index_words	:	gives word of key index
 			word2_tag2	:	P(W_i/T_i)
 	'''
-	s_len = len(tagSentence)
+	tag_wos = tags.copy()
+	del tag_wos['s']
+	tag_wos = tag_wos.keys()
+
+	s_len = len(sentence)
 	viterbi = np.zeros((nn-1,s_len)) 	# initialise viterbi table
 	v_l = np.zeros((nn-1,s_len))
-	backtrack = np.zeros((nn-1,s_len)) 		# initialise the best path table
+	backtrack = np.zeros((nn-1,s_len), dtype = int) 		# initialise the best path table
 	best_path = np.zeros(s_len); 		# output
-
-	sentence = []
-	for word in tagSentence:
-		sentence.append(word)
 
 	# filling the viterbi table for 1st word
 	wi = word_index[sentence[0][1]]
-	for ii in range(nn-1):
-		t2 = tag_index[tag_words[ii]]
-		# print (tag_words)
-		# print (t2, ii, tag_words[ii])
-		# index of 's' is fixed at len(tags)-1
-		viterbi[t2][0] = tag2_tag1[0][t2] * word2_tag2[t2][wi]
+	for ii in tag_wos:
+		t2 = tag_index[ii]
+		viterbi[t2][0] = tag2_tag1[tag_index['s']][t2] * word2_tag2[t2][wi]
 
-	# filling the viterbi table for remaining words
-	for word in sentence[1:]:
+	# filling the viterbi table for rest
+	for col in range(1,s_len):
+		word = sentence[col]
 		wi = word_index[word[1]]
-		viterbiWordIndex = int(word[0])-1
-		for ii in range(nn-1):
-			t1 = tag_index[tag_words[ii]]
-			for jj in range(nn-1):
-				t2 = tag_index[tag_words[jj]]
-				# print (jj, t2)
-				viterbi[t2][viterbiWordIndex] = tag2_tag1[t1+1][t2] * word2_tag2[t2][wi]
-	# print (viterbi)
-
-	for col in range(1,s_len): # since we don't consider 1st column
-		for row in range(nn-1):
+		for row in tag_wos:
+			rw = tag_index[row]
 			temp_max_val = -1.0
 			tem_max_ind = -1.0
-			curr = viterbi[row][col]
-			for kk in range(nn-1):
-				prod = curr*viterbi[kk][col-1]
+			for pv_row in tag_wos:
+				prev_row = tag_index[pv_row]	
+				vit_ele = tag2_tag1[prev_row][rw] * word2_tag2[rw][wi]
+				prod = vit_ele*viterbi[prev_row][col-1]
 				if prod > temp_max_val:
-					# print ("row ",row,"col ",col, "currInd ",kk, "currMax ",prod, "prevMax ",temp_max_val, "prevInd ",tem_max_ind)
 					temp_max_val = prod
-					tem_max_ind = kk
-			viterbi[row][col] = temp_max_val
-			backtrack[row][col] = tem_max_ind
+					tem_max_ind = prev_row
+			viterbi[rw][col] = temp_max_val
+			backtrack[rw][col] = tem_max_ind
 
 	col_last = s_len-1
+	final_col=col_last
 	col_list=[]
 	temp_max_val=-1
 	for row in range(nn-1):
 		if viterbi[row][col_last] > temp_max_val:
-			temp_max_val = viterbi[row][col_last]
-		col_list.append(viterbi[row][col_last])
-	max_ind = col_list.index(temp_max_val)
+			final_row = row
 
-	best_path[s_len-1] = max_ind
-	for bk in range(s_len-1,-1,-1):
-		# print (bk)
-		prev_inx = int(best_path[bk])
-		# print (prev_inx)
-		best_path[bk-1] = backtrack[prev_inx][bk-1]
-	
-	# print (best_path)
-	# print (backtrack)
+	while final_col >= 0:
+		col_list.append(backtrack[final_row][final_col])
+		final_row = backtrack[final_row][final_col]
+		final_col = final_col-1
+
+	col_list.reverse()
+	best_path = col_list
 
 	prediction=[]
 	for aaa in best_path:
@@ -286,6 +271,8 @@ def applyViterbi(tagSentence):
 	prediction.append(".")
 	return (prediction[1:])
 
+
+# replace the unknown words with 'unk'
 goodTest = []
 sampleS = len(test)
 for sentence in test[0:sampleS]:
@@ -294,13 +281,14 @@ for sentence in test[0:sampleS]:
 			sentence[wii][1] = "<unk>"
 	goodTest.append(sentence)
 
+# calculate the correct predictions
 compareMatrix = []
-for sentence in goodTest:
+for itr, sentence in enumerate(goodTest):
 	actualLabel=[]
 	for word in sentence:
 		actualLabel.append(word[2])
 	compareSen = ([applyViterbi(sentence), actualLabel])
-	# print (compareSen)
+	print (itr)
 	compareMatrix.append(compareSen)
 
 totalChecks=0
