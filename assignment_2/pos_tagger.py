@@ -255,24 +255,39 @@ def applyViterbi(tagSentence):
 			for kk in range(nn-1):
 				prod = curr*viterbi[kk][col-1]
 				if prod > temp_max_val:
-					print ("row ",row,"col ",col, "currInd ",kk, "currMax ",prod, "prevMax ",temp_max_val, "prevInd ",tem_max_ind)
+					# print ("row ",row,"col ",col, "currInd ",kk, "currMax ",prod, "prevMax ",temp_max_val, "prevInd ",tem_max_ind)
 					temp_max_val = prod
 					tem_max_ind = kk
 			viterbi[row][col] = temp_max_val
 			backtrack[row][col] = tem_max_ind
-		# for row in range(len(viterbi)):
-		# 	viterbi[row][col] = v_l[row][col]
-	# print (viterbi)
+
+	col_last = s_len-1
+	col_list=[]
+	temp_max_val=-1
+	for row in range(nn-1):
+		if viterbi[row][col_last] > temp_max_val:
+			temp_max_val = viterbi[row][col_last]
+		col_list.append(viterbi[row][col_last])
+	max_ind = col_list.index(temp_max_val)
+
+	best_path[s_len-1] = max_ind
+	for bk in range(s_len-1,-1,-1):
+		# print (bk)
+		prev_inx = int(best_path[bk])
+		# print (prev_inx)
+		best_path[bk-1] = backtrack[prev_inx][bk-1]
+	
+	# print (best_path)
 	# print (backtrack)
 
 	prediction=[]
-	for aaa in backtrack[0]:
+	for aaa in best_path:
 		prediction.append(tag_words[aaa])
 	prediction.append(".")
 	return (prediction[1:])
 
 goodTest = []
-sampleS = 1#len(test)
+sampleS = len(test)
 for sentence in test[0:sampleS]:
 	for wii, word in enumerate(sentence):
 		if word[1] not in uniq_words.keys():
@@ -298,4 +313,5 @@ for sentence in compareMatrix:
 			niceChecks+=1
 	# print (sentence[0])
 	# print (sentence[1])
+print (niceChecks, totalChecks)
 print (niceChecks/totalChecks)
