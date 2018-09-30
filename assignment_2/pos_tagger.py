@@ -250,7 +250,7 @@ def applyViterbi(sentence):
 			backtrack[rw][col] = tem_max_ind
 
 	col_last = s_len-1
-	final_col=col_last
+	final_col= s_len-1
 	col_list=[]
 	temp_max_val=-1
 	for row in range(nn-1):
@@ -258,18 +258,20 @@ def applyViterbi(sentence):
 			final_row = row
 
 	while final_col >= 0:
-		col_list.append(backtrack[final_row][final_col])
+		col_list.append(final_row)
+		# col_list.append(backtrack[final_row][final_col])
 		final_row = backtrack[final_row][final_col]
 		final_col = final_col-1
 
 	col_list.reverse()
+	col_list[s_len-1] = 8
 	best_path = col_list
 
 	prediction=[]
 	for aaa in best_path:
 		prediction.append(tag_words[aaa])
-	prediction.append(".")
-	return (prediction[1:])
+	return (prediction)
+
 
 
 # replace the unknown words with 'unk'
