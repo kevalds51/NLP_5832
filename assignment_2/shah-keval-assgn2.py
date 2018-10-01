@@ -3,7 +3,7 @@ NLP
 Professor: James Martin
 Assignment 2: Part-Of-Speech Tagging
 Student: Keval Shah
-Date: September 25 2018
+Date: September 27 2018
 '''
 
 # -*- coding: utf-8 -*-
@@ -33,11 +33,12 @@ for i in F.readlines():
 		word[2] = word[2][:-1]
 		sentence.append(word)
 all_data.append(sentence)
+# print (len(all_data))
 
 # Split the data into training and test set.
 # np.random.shuffle(all_data)
 len_all = len(all_data)
-len_train = int(len_all*0.8)
+len_train = int(len_all)
 len_test = int(len_all-len_train)
 
 training, test = all_data[:len_train], all_data[len_train:]
@@ -295,37 +296,69 @@ def applyViterbi(sentence):
 		prediction.append(tag_words[aaa])
 	return (prediction)
 
+rel_path = "assgn2-test-set.txt"
+abs_file_path = os.path.join(script_dir, rel_path)
 
+# This will divide the data in list of sentences
+# word[0] : word position in sentence
+# word[1] : word
+test_all_data = []
+test_all_data_copy = []
+
+# read the file to assign tags
+Ft = open(abs_file_path,"r")
+testSentence = []
+for i in Ft.readlines():
+	if i == '\n':
+		test_all_data.append(testSentence)
+		testSentence=[]
+	else:
+		word = i.split("\t")			# Remove the '\n'
+		word[1] = word[1][:-1]
+		testSentence.append(word)
+test_all_data.append(testSentence)
+Ft.close()
+
+# read the file again to print corresponding tags
+Ft = open(abs_file_path,"r")
+testSentence = []
+for i in Ft.readlines():
+	if i == '\n':
+		test_all_data_copy.append(testSentence)
+		testSentence=[]
+	else:
+		word = i.split("\t")			# Remove the '\n'
+		word[1] = word[1][:-1]
+		testSentence.append(word)
+test_all_data_copy.append(testSentence)
+Ft.close()
+
+# np.random.shuffle(test_all_data)
+test_len = len(test_all_data)
 
 # replace the unknown words with 'unk'
 goodTest = []
-sampleS = len(test)
-for sentence in test[0:sampleS]:
+for sentence in test_all_data:
 	for wii, word in enumerate(sentence):
 		if word[1] not in uniq_words.keys():
 			sentence[wii][1] = "<unk>"
 	goodTest.append(sentence)
 
-# calculate the correct predictions
+# produce predictions
 compareMatrix = []
 for itr, sentence in enumerate(goodTest):
-	actualLabel=[]
-	for word in sentence:
-		actualLabel.append(word[2])
-	compareSen = ([applyViterbi(sentence), actualLabel])
-	if(itr%(int(sampleS/100))==0):
-		print (int(itr/(sampleS/100))," %")
-	compareMatrix.append(compareSen)
+	compareMatrix.append(applyViterbi(sentence))
 
-totalChecks=0
-niceChecks=0
 
-for sentence in compareMatrix:
-	for iii in range(len(sentence[0])):
-		totalChecks+=1
-		if sentence[0][iii] == sentence[1][iii]:
-			niceChecks+=1
-	# print (sentence[0])
-	# print (sentence[1])
-print (niceChecks, totalChecks)
-print (niceChecks/totalChecks)
+rel_path = "shah-keval-assgn2-test-output.txt"
+abs_file_path = os.path.join(script_dir, rel_path)
+f_out = open(abs_file_path,"w")
+
+# print to file
+for si, ansSen in enumerate(test_all_data_copy):
+	for wi, ansWord in enumerate(ansSen):
+		f_out.write(ansWord[0]+"\t"+ansWord[1]+"\t"+compareMatrix[si][wi]+"\n")
+		# print (ansWord[0]+"\t"+ansWord[1]+"\t"+compareMatrix[si][wi])
+	if (si!=len(test_all_data_copy)-1):
+		f_out.write("\n")
+	# print ("")
