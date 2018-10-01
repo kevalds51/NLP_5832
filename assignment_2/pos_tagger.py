@@ -40,7 +40,7 @@ len_train = int(len_all*0.8)
 len_test = int(len_all-len_train)
 
 training, test = all_data[:len_train], all_data[len_train:]
-print ("Total sentences: ", len_all, "Training: ", len_train, "Test: ",len_test)
+# print ("Total sentences: ", len_all, "Training: ", len_train, "Test: ",len_test)
 
 # Count the occurences of each POS-tag in entire data
 tags = Counter()
@@ -48,7 +48,7 @@ for sentence in all_data:
 	for word in sentence:
 		tags[word[2]] += 1
 	tags['s'] += 1 # 's' is the tag to indicate start
-print (tags)
+# print (tags)
 
 ##	 -------------				BASELINE			--------------
 
@@ -77,10 +77,10 @@ for sentence in test:
 		else:
 			new_word_count += 1
 
-print ("\n\t\tBaseline approach stats")
-print ("\t\t-----------------------\t\t")
-print ("\t\tWords tested: ", words_tested, "\n\t\tNew words: ", new_word_count, "\n\t\tWrongly predicted: ", incorrect_prediction)
-print ("\t\t-----------------------\t\t\n")
+# print ("\n\t\tBaseline approach stats")
+# print ("\t\t-----------------------\t\t")
+# print ("\t\tWords tested: ", words_tested, "\n\t\tNew words: ", new_word_count, "\n\t\tWrongly predicted: ", incorrect_prediction)
+# print ("\t\t-----------------------\t\t\n")
 
 
 '''
@@ -276,7 +276,7 @@ def applyViterbi(sentence):
 
 # replace the unknown words with 'unk'
 goodTest = []
-sampleS = len(test)
+sampleS = 1#len(test)
 for sentence in test[0:sampleS]:
 	for wii, word in enumerate(sentence):
 		if word[1] not in uniq_words.keys():
