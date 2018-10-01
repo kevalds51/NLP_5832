@@ -48,7 +48,6 @@ for sentence in all_data:
 	for word in sentence:
 		tags[word[2]] += 1
 	tags['s'] += 1 # 's' is the tag to indicate start
-# print (tags)
 
 ##	 -------------				BASELINE			--------------
 
@@ -61,6 +60,34 @@ for sentence in training:
 			uniq_words[word[1]]=Counter()
 		uniq_words[word[1]][word[2]]+=1
 uniq_words["<unk>"]=Counter()
+
+# print word counts
+# for ww in uniq_words.keys():
+# 	print (ww, sum(uniq_words[ww].values()))
+# print (uniq_words)
+
+'''
+	Renaming the words to unk if the counter is < aSmallNumber
+'''
+unk_threshold = 10
+
+# print (uniq_words)
+del_keys = []
+for ww in uniq_words.keys():
+	if ww == "<unk>":
+		continue
+	if sum(uniq_words[ww].values())<unk_threshold:
+		ccc = uniq_words["<unk>"]
+		del_keys.append(ww)
+		for icc in uniq_words[ww]:
+			uniq_words["<unk>"][icc]+=uniq_words[ww][icc]
+for ww in del_keys:
+	del uniq_words[ww]
+
+# print word counts after unk threshold
+# for ww in uniq_words.keys():
+# 	print (ww, sum(uniq_words[ww].values()))
+# print (uniq_words)
 
 # test dictionary will store the [predicted value, actual value] for all test words
 test_dict = {}
@@ -98,7 +125,6 @@ index_words = {}	# indexes are keys
 for wi, word in enumerate(uniq_words.keys()):
 	word_index[word] = wi
 	index_words[wi] = word
-# print (word_index)
 
 # 	enumerate the unique tags to maintain the bigram occurence count
 tag_index = {}		# tags are keys
@@ -114,9 +140,6 @@ tag_index['s'] = len(tags)-1
 tag_index[last_tag] = s_index
 tag_words[s_index] = last_tag
 tag_words[len(tags)-1] = 's'
-
-# print (tag_words)
-# print (tag_index)
 
 '''
 	Tag transition probability
@@ -143,10 +166,6 @@ for si, sentences in enumerate(training):
 		tag2_tag1[w1][w2]+=1
 		t2t1_bgCount +=1
 
-# print ("Total bigram counts: ", t2t1_bgCount)
-# if I want the count of (NN after s)
-# print (tag2_tag1[tag_index["s"]][tag_index["NN"]])
-
 #	Mapping the count to probability
 for xx, row in enumerate(tag2_tag1):
 	for yy, ele in enumerate(row):
@@ -165,15 +184,13 @@ word2_tag2 = np.zeros(shape=(nn-1,nw)) # Don't need 's' here
 t2_counter = Counter()
 for si, sentences in enumerate(training):
 	for wi, word in enumerate(sentences):
+		if word[1] not in uniq_words.keys():
+			word[1] = "<unk>"
 		t2_counter[word[2]] += 1
 		w2 = word_index[word[1]]
 		t2 = tag_index[word[2]]
 		word2_tag2[t2][w2]+=1
 		w2t2_bgCount +=1
-
-# print ("Total bigram counts: ", w2t2_bgCount)
-# if I want the count of ("burrito" for "NN")
-# print (word2_tag2[tag_index["NN"]][word_index["burrito"]])
 
 #	Mapping the count to probability
 for xx, row in enumerate(word2_tag2):
@@ -259,7 +276,6 @@ def applyViterbi(sentence):
 
 	while final_col >= 0:
 		col_list.append(final_row)
-		# col_list.append(backtrack[final_row][final_col])
 		final_row = backtrack[final_row][final_col]
 		final_col = final_col-1
 
@@ -276,7 +292,7 @@ def applyViterbi(sentence):
 
 # replace the unknown words with 'unk'
 goodTest = []
-sampleS = 1#len(test)
+sampleS = len(test)
 for sentence in test[0:sampleS]:
 	for wii, word in enumerate(sentence):
 		if word[1] not in uniq_words.keys():
@@ -290,7 +306,7 @@ for itr, sentence in enumerate(goodTest):
 	for word in sentence:
 		actualLabel.append(word[2])
 	compareSen = ([applyViterbi(sentence), actualLabel])
-	print (itr)
+	print (itr+1)
 	compareMatrix.append(compareSen)
 
 totalChecks=0
