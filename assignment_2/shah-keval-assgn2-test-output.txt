@@ -8,7 +8,7 @@
 8	make	VB
 9	me	PRP
 10	some	DT
-11	proposals	NN
+11	proposals	NNS
 12	.	.
 
 1	um	UH
@@ -6524,7 +6524,7 @@
 8	food	NN
 9	i	PRP
 10	want	VBP
-11	eggs	NN
+11	eggs	NNS
 12	.	.
 
 1	five	CD
@@ -6548,6 +6548,6 @@
 
 1	which	WDT
 2	ones	NNS
-3	have	VBP
-4	eggs	NN
+3	have	VB
+4	eggs	NNS
 5	.	.
