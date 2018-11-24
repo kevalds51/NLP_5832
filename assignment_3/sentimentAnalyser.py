@@ -173,6 +173,7 @@ countPosWords = float(sum(train_posWords.values()))
 countNegWords = float(sum(train_negWords.values()))
 
 # Are lists needed? YES, we need to access words for Bayes!
+correct = 0.0
 for review in tests:
 	ID = review[0:7]
 	label = "NEG"
@@ -198,9 +199,29 @@ for review in tests:
 			pNeg += math.log(train_negWords[word]/countNegWords)
 		else:
 			pNeg += math.log(1/countNegWords)
+	# print (pPos,pNeg)
 
-	print (pPos,pNeg)
 	if pPos > pNeg:
 		print (ID + " with label: " + label + " was predicted as: " + "POS")
+		if label == "POS":
+			correct += 1
 	else:
 		print (ID + " with label: " + label + " was predicted as: " + "NEG")
+		if label == "NEG":
+			correct += 1
+
+print ("Accuracy on test-set("+ str(len(tests)) + ") with " + "train-set(" + str(len(positives)+len(negatives)) + ") : " + str(round(100*correct/len(tests), 2)) + " %")
+'''
+print("train_allPosWords: ", len(train_allPosWords))
+print("train_allNegWords: ", len(train_allNegWords))
+print("train_posWordSet: ", len(train_posWordSet))
+print("train_negWordSet: ", len(train_negWordSet))
+print("train_posWords: ", len(train_posWords))
+print("train_negWords: ", len(train_negWords))
+print("test_allPosWords: ", len(test_allPosWords))
+print("test_allNegWords: ", len(test_allNegWords))
+print("test_posWordSet: ", len(test_posWordSet))
+print("test_negWordSet: ", len(test_negWordSet))
+print("test_posWords: ", len(test_posWords))
+print("test_negWords: ", len(test_negWords))
+'''
