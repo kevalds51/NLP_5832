@@ -146,15 +146,15 @@ for review in tests:
 	for word in review:
 		# The model for positive class
 		if word in train_posWords.keys():
-			pPos += math.log(train_posWords[word]/countPosWords)
+			pPos += math.log((train_posWords[word]+1)/(countPosWords+len(train_posWordSet)))
 		else:
-			pPos += math.log(1/countPosWords)
+			pPos += math.log(1/(countPosWords+len(train_posWordSet)))
 
 		# The model for positive class
 		if word in train_negWords.keys():
-			pNeg += math.log(train_negWords[word]/countNegWords)
+			pNeg += math.log((train_negWords[word]+1)/(countNegWords+len(train_negWordSet)))
 		else:
-			pNeg += math.log(1/countNegWords)
+			pNeg += math.log(1/(countNegWords+len(train_negWordSet)))
 	# print (pPos,pNeg)
 	if pPos > pNeg:
 		outputList.append(ID + "\t" + "POS")
