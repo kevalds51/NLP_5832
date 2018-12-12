@@ -1,0 +1,1 @@
+1. If you have decide to use viterbi, then you need to create a .py file that handles the test data. Otherwise, you don't need to create a seperate file. You can just report the result on training data in the report.
